@@ -1,0 +1,90 @@
+{% extends "modeladmin/index.html" %}
+{% load i18n modeladmin_tags %}
+{%  block css %}
+    {{ block.super }}
+    <style>
+        .list-edit li {
+            float: left;
+            list-style-type:none;
+        }
+        .list-edit li{
+            padding-right: 5px;
+        }
+        .list-edit {
+            padding-right: 0 !important;
+        }
+        .right > .flush {
+            margin-right: 20px;
+        }
+        #progress-flush {
+            margin: 5px 0 5px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    <header class="nice-padding hasform" role="banner">
+        <div class="row header-title">
+            <div class="left">
+                <div class="col">
+                    {% block h1 %}<h1 {% if view.header_icon %}class="icon icon-{{ view.header_icon }}"{% endif %}>{{ view.get_page_title }}<span></span></h1>{% endblock %}
+                </div>
+                {% block search %}{% search_form %}{% endblock %}
+            </div>
+            {% block header_extra %}
+                {{ block.super }}
+                {% if request.user.is_superuser %}
+                {% if view.index_url == '/admin/user_data/userdetail/' %}
+                <div class="right">
+                    <button type="button" class="button no flush icon icon-repeat bicolor ">刷新用户详情数据</button>
+                </div>
+                {% endif %}
+                {% endif %}
+            {% endblock %}
+        </div>
+    </header>
+{% endblock %}
+{% block extra_js %}
+    {{ block.super }}
+
+    <script type="text/javascript">
+        window.onload = function (){
+            $('#progress-flush').hide();
+            $('.list-edit >.button-detail').click(function () {
+                let xx = $(this).parent().parent().data('object-pk');
+                console.log(xx)
+            });
+            $('.flush ').click(function () {
+                let _this = $(this);
+                _this.removeClass('icon-repeat');
+                _this.addClass('icon-spinner');
+                let _msg_box = $('.messages');
+                $.ajax({
+                    'url': '/api/user/detail/flush/',
+                    success: function () {
+                        _msg_box.empty();
+                        _msg_box.append('    <ul>\n' +
+                            '        <li class="success">更新成功</li>\n' +
+                            '    </ul>');
+                        setTimeout(function () {
+                            _this.removeClass('icon-spinner');
+                            _this.addClass('icon-repeat');
+                            _msg_box.fadeOut('slow');
+                        }, 2000)
+                    },
+                    error: function () {
+                        _msg_box.empty();
+                        _msg_box.append('    <ul>\n' +
+                            '        <li class="error">更新失败</li>\n' +
+                            '    </ul>');
+                        setTimeout(function () {
+                            _this.removeClass('icon-spinner');
+                            _this.addClass('icon-repeat');
+                            _msg_box.fadeOut('slow');
+                        }, 2000)
+                    }
+                })
+            });
+        };
+    </script>
+{% endblock %}
